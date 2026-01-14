@@ -99,7 +99,7 @@ export default function App() {
     )}
     </div>
     <p style={{ fontSize: '12px', color: '#555', maxWidth: '400px', textAlign: 'center' }}>
-      This client expects a WebSocket server that assigns players, validates moves, updates game state, and broadcasts messages.
+      Still a WIP
     </p>
   </div>
   );
