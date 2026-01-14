@@ -1,39 +1,91 @@
-const { WebSocketServer } = require("ws");
+const WebSocket = require('ws');
 
-const wss = new WebSocketServer({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080 });
 
-let players = [];
-let gameState = null;
+const SIZE = 8;
 
-wss.on("connection", (ws) => {
-  if (players.length >= 2) {
+// --- Types ---
+// Piece = { player: 'WHITE' | 'BLACK', king: boolean } | null
+
+// Initial board setup
+function createInitialBoard() {
+  const board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if ((r + c) % 2 === 1) board[r][c] = { player: 'BLACK', king: false };
+    }
+  }
+  for (let r = 5; r < 8; r++) {
+    for (let c = 0; c < SIZE; c++) {
+      if ((r + c) % 2 === 1) board[r][c] = { player: 'WHITE', king: false };
+    }
+  }
+  return board;
+}
+
+let board = createInitialBoard();
+let turn = 'WHITE'; // WHITE starts
+let connectedPlayer = [];
+
+function broadcastBoard() {
+  const message = JSON.stringify({ type: 'state', board, turn });
+  wss.clients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) client.send(message);
+  });
+}
+
+wss.on('connection', ws => {
+  if (connectedPlayer.length >= 2) {
+    ws.send(JSON.stringify({ type: 'error', message: 'Game full' }));
     ws.close();
     return;
   }
 
-  players.push(ws);
-  const playerIndex = players.length - 1;
+  const player = connectedPlayer.length === 0 ? 'WHITE' : 'BLACK';
+  connectedPlayer.push(ws);
+  ws.player = player;
 
-  ws.send(JSON.stringify({ type: "init", playerIndex }));
+  ws.send(JSON.stringify({ type: 'join', player }));
+  ws.send(JSON.stringify({ type: 'state', board, turn }));
 
-  ws.on("message", (msg) => {
-    const data = JSON.parse(msg.toString());
-    console.log(data);
-    if (data.type === "state") {
-      gameState = data.state;
+  ws.on('message', data => {
+    let msg;
+    try {
+      msg = JSON.parse(data);
+    } catch (e) {
+      console.error('Invalid message', data);
+      return;
+    }
 
-      players.forEach((p) => {
-        if (p.readyState === p.OPEN) {
-          p.send(JSON.stringify({ type: "state", state: gameState }));
-        }
-      });
+    if (msg.type === 'move') {
+      const [fromR, fromC] = msg.from;
+      const [toR, toC] = msg.to;
+      const piece = board[fromR][fromC];
+
+      if (!piece || piece.player !== ws.player) return; // Not your piece
+      if (ws.player !== turn) return; // Not your turn
+
+      // Very basic move (no capture validation yet)
+      board[toR][toC] = piece;
+      board[fromR][fromC] = null;
+
+      // Promote to king
+      if (piece.player === 'WHITE' && toR === 0) piece.king = true;
+      if (piece.player === 'BLACK' && toR === SIZE - 1) piece.king = true;
+
+      turn = turn === 'WHITE' ? 'BLACK' : 'WHITE';
+
+      broadcastBoard();
     }
   });
 
-  ws.on("close", () => {
-    players = players.filter((p) => p !== ws);
-    gameState = null;
+  ws.on('close', () => {
+    connectedPlayer = connectedPlayer.filter(p => p !== ws);
+    // reset board when someone leaves
+    board = createInitialBoard();
+    turn = 'WHITE';
+    broadcastBoard();
   });
 });
 
-console.log("WebSocket server running on ws://localhost:8080");
+console.log('Checkers WebSocket server running on ws://localhost:8080');

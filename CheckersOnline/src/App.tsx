@@ -59,9 +59,14 @@ export default function App() {
   }
 
   function handleCellClick(r: number, c: number) {
+    console.log("test");
     const piece = board[r][c];
     if (!selected) {
+      console.log(piece);
+      console.log(turn);
+      console.log(me);
       if (piece && piece.player === me && turn === me) setSelected([r, c]);
+      console.log(selected);
       return;
     }
     const [sr, sc] = selected;
