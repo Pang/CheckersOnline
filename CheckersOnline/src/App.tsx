@@ -15,18 +15,15 @@ const SIZE = 8;
 
 function createInitialBoard(): Board {
   const b: Board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
-  for (let r = 0; r < 3; r++) {
-    for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "BLACK", king: false };
-  }
-  for (let r = 5; r < 8; r++) {
-    for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "WHITE", king: false };
-  }
+  // for (let r = 0; r < 3; r++) {
+  //   for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "BLACK", king: false };
+  // }
+  // for (let r = 5; r < 8; r++) {
+  //   for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "WHITE", king: false };
+  // }
   return b;
 }
 
-function cloneBoard(b: Board): Board {
-  return b.map((row) => row.map((p) => (p ? { ...p } : null)));
-}
 
 export default function App() {
   const [board, setBoard] = useState<Board>(() => createInitialBoard());
@@ -72,32 +69,32 @@ export default function App() {
   }
 
   return (
-  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', minHeight: '100vh', backgroundColor: '#272727ff', padding: '16px' }}>
-    <h1 style={{ fontSize: '24px', fontWeight: 'bold' }}>Online Checkers</h1>
+  <div className="mainContainer">
+    <h1>Online Checkers</h1>
     <div style={{ fontSize: '14px' }}>You are: <b>{me ?? "…"}</b> | Turn: <b>{turn}</b></div>
-    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 64px)', border: '4px solid #444' }}>
-    {board.map((row, r) =>
-      row.map((cell, c) => {
-        const dark = (r + c) % 2 === 1;
-        const isSel = selected?.[0] === r && selected?.[1] === c;
-        return (
-          <div className="gameBoard" key={`${r}-${c}`}
-              onClick={() => dark && handleCellClick(r, c)}
-              style={{
-                backgroundColor: dark ? '#276127ff' : '#89d389ff',
-                boxSizing: 'border-box',
-                border: isSel ? '4px solid WHITE' : 'none', 
-              }}>
+    <div className="gameBoard">
+      {board.map((row, r) =>
+        row.map((cell, c) => {
+          const dark = (r + c) % 2 === 1;
+          const isSel = selected?.[0] === r && selected?.[1] === c;
+          return (
+            <div className="gameBoardSquare" key={`${r}-${c}`}
+                onClick={() => dark && handleCellClick(r, c)}
+                style={{
+                  backgroundColor: dark ? '#276127ff' : '#89d389ff',
+                  boxSizing: 'border-box',
+                  border: isSel ? '4px solid WHITE' : 'none', 
+                }}>
 
-          {cell && (
-            <div className="playerChecker" style={{backgroundColor: cell.player === 'WHITE' ? '#fff' : '#000',}} >
-              {cell.king ? 'K' : ''}
-            </div>
-          )}
-        </div>
-        );
-      })
-    )}
+            {cell && (
+              <div className="playerChecker" style={{backgroundColor: cell.player === 'WHITE' ? '#fff' : '#000',}} >
+                {cell.king ? 'K' : ''}
+              </div>
+            )}
+          </div>
+          );
+        })
+      )}
     </div>
     <p style={{ fontSize: '12px', color: '#555', maxWidth: '400px', textAlign: 'center' }}>
       Still a WIP
