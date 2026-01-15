@@ -1,0 +1,9 @@
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.csproj.AssemblyReference.cache
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\rpswa.dswa.cache.json
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.AssemblyInfoInputs.cache
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.AssemblyInfo.cs
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.csproj.CoreCompileInputs.cache
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.MvcApplicationPartsAssemblyInfo.cs
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.MvcApplicationPartsAssemblyInfo.cache
+C:\Users\RyanB\source\repos\CheckersOnline\CheckersOnline.Server\CheckersOnline.Server\obj\Debug\net10.0\CheckersOnline.Server.sourcelink.json

@@ -41,7 +41,11 @@ wss.on('connection', ws => {
     return;
   }
 
-  const player = connectedPlayer.length === 0 ? 'WHITE' : 'BLACK';
+  let player = 'WHITE';
+  if (connectedPlayer.length > 0 && connectedPlayer[0].player == "WHITE") {
+    player = "BLACK";
+  }
+
   connectedPlayer.push(ws);
   ws.player = player;
 
