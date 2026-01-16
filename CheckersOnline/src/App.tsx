@@ -10,11 +10,9 @@ export default function App() {
   const wsConn = useRef<HubConnection | null>(null);
 
   const GameStartedHandler = (gameState: GameState) => {
-    console.log(gameState.board);
     setGameState(gameState);
   };
   const SetColorHandler = (color: PieceColor) => {
-    console.log(color);
     setMe(color);
   }
   const SetMoveMadeHandler = (gameState: GameState) => {

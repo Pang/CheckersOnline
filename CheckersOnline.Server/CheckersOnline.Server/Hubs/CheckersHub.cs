@@ -55,11 +55,7 @@ public class CheckersHub : Hub
 
     public async Task MakeMove(Move move)
     {
-        if (!_gameEngine.TryApplyMove(_gameEngine.currentGame, move))
-            return;
-
         _gameEngine.MovePiece(_gameEngine.currentGame, move);
-
         await Clients.Group(defaultGroupName).SendAsync("MoveMade", _gameEngine.currentGame);
     }
 }

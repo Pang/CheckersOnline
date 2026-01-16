@@ -41,7 +41,6 @@ namespace CheckersOnline.Server.Services
             int rowDiff = Math.Abs(move.ToRow - move.FromRow);
             int colDiff = Math.Abs(move.ToCol - move.FromCol);
 
-            // Must be a jump
             if (rowDiff != 2 || colDiff != 2)
                 return false;
 
@@ -50,7 +49,13 @@ namespace CheckersOnline.Server.Services
 
             var middlePiece = board[midRow][midCol];
 
-            return middlePiece != null && middlePiece.Color != movingColor;
+            if (middlePiece != null && middlePiece.Color != movingColor)
+            {
+                board[midRow][midCol] = null;
+                return true;
+            }
+
+            return false;
         }
     }
 }

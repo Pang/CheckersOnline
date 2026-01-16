@@ -100,7 +100,6 @@ namespace CheckersOnline.Server.Services
             state.Board[move.ToRow][move.ToCol] = new Piece(piece.Color, piece.Type);
             state.Board[move.FromRow][move.FromCol] = null;
 
-
             SwitchTurn(state);
         }
 
