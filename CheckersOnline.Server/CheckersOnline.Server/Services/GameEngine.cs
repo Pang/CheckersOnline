@@ -66,12 +66,22 @@ namespace CheckersOnline.Server.Services
         }
 
         // Check move valid && Apply game logic for move
-        public bool TryApplyMove(GameState state, Move move)
+        public void TryApplyMove(GameState state, Move move)
         {
-            if (!_rules.IsValidMove(state, move))
-                return false;
+            TurnInfo turnInfo = _rules.IsValidMove(state, move);
+            if (!turnInfo.IsLegalMove) return;
 
-            return true;
+            Piece piece = state.Board[move.FromRow][move.FromCol];
+
+            state.Board[move.ToRow][move.ToCol] = new Piece(piece.Color, piece.Type);
+            state.Board[move.FromRow][move.FromCol] = null;
+
+            if (_rules.CheckIsPromotedToKing(state, move) || 
+                !turnInfo.TookEnemyPiece || 
+                !_rules.PlayerHasAnyCapture(state.Board, piece.Color))
+            {
+                SwitchTurn(state);
+            }
         }
 
         // Check for win condition - else, Switch turns
@@ -89,18 +99,6 @@ namespace CheckersOnline.Server.Services
             {
                 SwitchTurn(state);
             }
-        }
-
-        public void MovePiece(GameState state, Move move)
-        {
-            if (!TryApplyMove(state, move)) return;
-
-            Piece piece = state.Board[move.FromRow][move.FromCol];
-
-            state.Board[move.ToRow][move.ToCol] = new Piece(piece.Color, piece.Type);
-            state.Board[move.FromRow][move.FromCol] = null;
-
-            SwitchTurn(state);
         }
 
         private void SwitchTurn(GameState state)
