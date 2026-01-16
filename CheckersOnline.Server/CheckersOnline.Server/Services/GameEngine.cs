@@ -93,10 +93,13 @@ namespace CheckersOnline.Server.Services
 
         public void MovePiece(GameState state, Move move)
         {
+            if (!TryApplyMove(state, move)) return;
+
             Piece piece = state.Board[move.FromRow][move.FromCol];
 
             state.Board[move.ToRow][move.ToCol] = new Piece(piece.Color, piece.Type);
             state.Board[move.FromRow][move.FromCol] = null;
+
 
             SwitchTurn(state);
         }
