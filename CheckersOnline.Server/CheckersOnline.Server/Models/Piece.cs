@@ -2,6 +2,14 @@
 {
     public class Piece
     {
+        public Piece()
+        { }
+        public Piece(PieceColor color, PieceType type)
+        {
+            Color = color;
+            Type = type;
+        }
+
         public PieceColor Color { get; set; }
         public PieceType Type { get; set; }
     }

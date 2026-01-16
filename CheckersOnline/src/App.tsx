@@ -1,72 +1,60 @@
 import { useEffect, useRef, useState } from "react";
 import { getConnection, startConnection } from "./services/signalR";
-import type { GameState, PieceColor } from "./models/GameState";
+import type { GameState, Move, PieceColor } from "./models/GameState";
+import type { HubConnection } from "@microsoft/signalr";
 
 export default function App() {
   const [gameState, setGameState] = useState<GameState>();
-  // const [board, setBoard] = useState<Board>(() => createInitialBoard());
-  // const [turn, setTurn] = useState<PieceColor>("WHITE");
   const [me, setMe] = useState<PieceColor | null>(null);
-  const [selected, setSelected] = useState<[number, number] | null>(null);
-  const wsRef = useRef<WebSocket | null>(null);
+  const [selectedPiece, setSelectedPiece] = useState<[number, number] | null>(null);
+  const wsConn = useRef<HubConnection | null>(null);
+
+  const GameStartedHandler = (gameState: GameState) => {
+    console.log(gameState.board);
+    setGameState(gameState);
+  };
+  const SetColorHandler = (color: PieceColor) => {
+    console.log(color);
+    setMe(color);
+  }
+  const SetMoveMadeHandler = (gameState: GameState) => {
+    console.log(gameState.board);
+    setGameState(gameState);
+  }
 
   // connect signalr
   useEffect(() => {
-      const conn = getConnection();
-
-      const GameStartedHandler = (gameState: GameState) => {
-        console.log(gameState.board);
-        setGameState(gameState);
-      };
-
+      wsConn.current = getConnection();
+      const conn = wsConn.current;
       conn.on("GameStarted", GameStartedHandler);
+      conn.on("SetColor", SetColorHandler);
+      conn.on("MoveMade", SetMoveMadeHandler);
 
-      conn.on("GameUpdated", (game) => {
-        console.log("Game updated:", game);
-      });
-
-      // Start connection safely
       startConnection().catch(console.error);
 
       return () => {
         conn.off("GameStarted", GameStartedHandler);
+        conn.off("SetColor", SetColorHandler);
+        conn.off("MoveMade", SetMoveMadeHandler);
       };
   }, []);
 
-  // Connect WebSocket
-  // useEffect(() => {
-  //   const ws = new WebSocket("ws://localhost:8080");
-  //   wsRef.current = ws;
-
-  //   ws.onmessage = (ev) => {
-  //     console.log(ev);
-  //     const msg: WSMessage = JSON.parse(ev.data);
-  //     if (msg.type === "join") setMe(msg.player);
-  //     if (msg.type === "state") {
-  //       setBoard(msg.board);
-  //       setTurn(msg.turn);
-  //     }
-  //   };
-
-  //   ws.onclose = () => console.log("WS closed");
-  //   return () => ws.close();
-  // }, []);
-
-  function sendMove(from: [number, number], to: [number, number]) {
-    wsRef.current?.send(JSON.stringify({ type: "move", from, to }));
+  function sendMove(r: number, c: number, sr: number, sc: number) {
+    const move: Move = { fromRow: sr, fromCol: sc, toRow: r, toCol: c };
+    wsConn.current?.invoke("MakeMove", move);
   }
 
   function handleCellClick(r: number, c: number) {
     const piece = gameState?.board[r][c];
     console.log(piece);
-    if (!selected) {
-      if (piece && piece.color === me && gameState?.currentTurn === me) setSelected([r, c]);
+    if (!selectedPiece) {
+      if (piece && piece.color === me && gameState?.currentTurn === me) setSelectedPiece([r, c]);
       return;
     }
-    const [sr, sc] = selected;
-    setSelected(null);
+    const [sr, sc] = selectedPiece;
+    setSelectedPiece(null);
     if (sr === r && sc === c) return;
-    sendMove([sr, sc], [r, c]);
+    sendMove(r, c, sr, sc);
   }
 
   return (
@@ -77,7 +65,7 @@ export default function App() {
       {gameState?.board.map((row, r) =>
         row.map((cell, c) => {
           const dark = (r + c) % 2 === 1;
-          const isSel = selected?.[0] === r && selected?.[1] === c;
+          const isSel = selectedPiece?.[0] === r && selectedPiece?.[1] === c;
           return (
             <div className="gameBoardSquare" key={`${r}-${c}`}
                 onClick={() => dark && handleCellClick(r, c)}

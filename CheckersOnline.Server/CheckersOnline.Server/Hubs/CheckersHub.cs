@@ -53,13 +53,13 @@ public class CheckersHub : Hub
     }
 
 
-    public async Task MakeMove(string gameId, Move move)
+    public async Task MakeMove(Move move)
     {
         if (!_gameEngine.TryApplyMove(_gameEngine.currentGame, move))
             return;
 
-        // apply move
+        _gameEngine.MovePiece(_gameEngine.currentGame, move);
 
-        await Clients.Group(gameId).SendAsync("MoveMade", _gameEngine.currentGame);
+        await Clients.Group(defaultGroupName).SendAsync("MoveMade", _gameEngine.currentGame);
     }
 }

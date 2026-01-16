@@ -18,7 +18,8 @@ namespace CheckersOnline.Server.Services
 
         public void StartNewGame(GameState state)
         {
-            // Clear board
+            _players.Clear();
+            
             for (int row = 0; row < 8; row++)
             {
                 for (int col = 0; col < 8; col++)
@@ -34,11 +35,7 @@ namespace CheckersOnline.Server.Services
                 {
                     if (IsDarkSquare(row, col))
                     {
-                        state.Board[row][col] = new Piece
-                        {
-                            Color = PieceColor.Black,
-                            Type = PieceType.Man
-                        };
+                        state.Board[row][col] = new Piece(PieceColor.Black, PieceType.Man);
                     }
                 }
             }
@@ -50,11 +47,7 @@ namespace CheckersOnline.Server.Services
                 {
                     if (IsDarkSquare(row, col))
                     {
-                        state.Board[row][col] = new Piece
-                        {
-                            Color = PieceColor.White,
-                            Type = PieceType.Man
-                        };
+                        state.Board[row][col] = new Piece(PieceColor.White, PieceType.Man);
                     }
                 }
             }
@@ -96,6 +89,16 @@ namespace CheckersOnline.Server.Services
             {
                 SwitchTurn(state);
             }
+        }
+
+        public void MovePiece(GameState state, Move move)
+        {
+            Piece piece = state.Board[move.FromRow][move.FromCol];
+
+            state.Board[move.ToRow][move.ToCol] = new Piece(piece.Color, piece.Type);
+            state.Board[move.FromRow][move.FromCol] = null;
+
+            SwitchTurn(state);
         }
 
         private void SwitchTurn(GameState state)
