@@ -1,10 +1,19 @@
 using CheckersOnline.Server.Hubs;
+using CheckersOnline.Server.Services;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
-builder.Services.AddSignalR();
+
+builder.Services.AddSignalR().AddJsonProtocol(options =>
+{
+    options.PayloadSerializerOptions.Converters.Add(
+        new JsonStringEnumConverter()
+    );
+}); 
+;
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("DevCors", policy =>
@@ -16,6 +25,10 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
+
+builder.Services.AddSingleton<GameEngine>();
+builder.Services.AddSingleton<CheckersRules>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())

@@ -1,39 +1,65 @@
 ﻿using CheckersOnline.Server.Models;
+using CheckersOnline.Server.Services;
 using Microsoft.AspNetCore.SignalR;
+using System.Drawing;
+using System.Text.Json;
 
 namespace CheckersOnline.Server.Hubs;
 
 public class CheckersHub : Hub
 {
-    private static Dictionary<string, GameState> Games = new();
+    private const string defaultGroupName = "default";
+    private readonly GameEngine _gameEngine;
 
-    public override Task OnConnectedAsync()
+    public CheckersHub(GameEngine gameEngine)
     {
-        Console.WriteLine("new client connected.");
-        return base.OnConnectedAsync();
+        _gameEngine = gameEngine;
     }
 
-    public async Task CreateGame(string gameId)
+    public async override Task OnConnectedAsync()
     {
-        Games[gameId] = new GameState();
-        await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
+        Console.WriteLine("New client connected.");
+        await Groups.AddToGroupAsync(Context.ConnectionId, defaultGroupName);
+        _gameEngine.currentGroupPlayers.Add(Context.ConnectionId);
+
+        if (_gameEngine.currentGroupPlayers.Count == 2)
+        {
+            await SetupGame();
+        }
+
+        await base.OnConnectedAsync();
     }
 
-    public async Task JoinGame(string gameId)
+    public override async Task OnDisconnectedAsync(Exception exception)
     {
-        await Groups.AddToGroupAsync(Context.ConnectionId, gameId);
-        await Clients.Group(gameId).SendAsync("PlayerJoined");
+        var id = Context.ConnectionId;
+        _gameEngine.currentGroupPlayers.Remove(Context.ConnectionId);
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, defaultGroupName);
+
+        await base.OnDisconnectedAsync(exception);
     }
+
+    public async Task SetupGame()
+    {
+        _gameEngine.StartNewGame(_gameEngine.currentGame);
+        var players = _gameEngine.SetPlayersAndTurn(_gameEngine.currentGame);
+
+        foreach (var player in players)
+        {
+            await Clients.Client(player.Key).SendAsync("SetColor", player.Value);
+        }
+
+        await Clients.Group(defaultGroupName).SendAsync("GameStarted", _gameEngine.currentGame);
+    }
+
 
     public async Task MakeMove(string gameId, Move move)
     {
-        var game = Games[gameId];
-
-        if (!game.IsValidMove(move))
+        if (!_gameEngine.TryApplyMove(_gameEngine.currentGame, move))
             return;
 
-        game.ApplyMove(move);
+        // apply move
 
-        await Clients.Group(gameId).SendAsync("MoveMade", move, game);
+        await Clients.Group(gameId).SendAsync("MoveMade", _gameEngine.currentGame);
     }
 }

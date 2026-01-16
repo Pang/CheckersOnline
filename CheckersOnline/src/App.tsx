@@ -1,57 +1,37 @@
 import { useEffect, useRef, useState } from "react";
 import { getConnection, startConnection } from "./services/signalR";
-
-// --- Types ---
-type Player = "WHITE" | "BLACK";
-type Piece = { player: Player; king: boolean } | null;
-type Board = Piece[][]; // 8x8
-
-type WSMessage =
-  | { type: "state"; board: Board; turn: Player }
-  | { type: "move"; from: [number, number]; to: [number, number] }
-  | { type: "join"; player: Player };
-
-// --- Helpers ---
-const SIZE = 8;
-
-function createInitialBoard(): Board {
-  const b: Board = Array.from({ length: SIZE }, () => Array(SIZE).fill(null));
-  // for (let r = 0; r < 3; r++) {
-  //   for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "BLACK", king: false };
-  // }
-  // for (let r = 5; r < 8; r++) {
-  //   for (let c = 0; c < SIZE; c++) if ((r + c) % 2 === 1) b[r][c] = { player: "WHITE", king: false };
-  // }
-  return b;
-}
-
+import type { GameState, PieceColor } from "./models/GameState";
 
 export default function App() {
-  const [board, setBoard] = useState<Board>(() => createInitialBoard());
-  const [turn, setTurn] = useState<Player>("WHITE");
-  const [me, setMe] = useState<Player | null>(null);
+  const [gameState, setGameState] = useState<GameState>();
+  // const [board, setBoard] = useState<Board>(() => createInitialBoard());
+  // const [turn, setTurn] = useState<PieceColor>("WHITE");
+  const [me, setMe] = useState<PieceColor | null>(null);
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
   // connect signalr
-    useEffect(() => {
-        const conn = getConnection();
+  useEffect(() => {
+      const conn = getConnection();
 
-        // Register handlers only once
-        conn.on("GameUpdated", (game) => {
-            console.log("Game updated:", game);
-        });
+      const GameStartedHandler = (gameState: GameState) => {
+        console.log(gameState.board);
+        setGameState(gameState);
+      };
 
-        // Start connection safely
-        startConnection().catch(console.error);
+      conn.on("GameStarted", GameStartedHandler);
 
-        // Cleanup in production only
-        // return () => {
-        //     if (process.env.NODE_ENV === "production") {
-        //         conn.off("GameUpdated");
-        //     }
-        // };
-    }, []);
+      conn.on("GameUpdated", (game) => {
+        console.log("Game updated:", game);
+      });
+
+      // Start connection safely
+      startConnection().catch(console.error);
+
+      return () => {
+        conn.off("GameStarted", GameStartedHandler);
+      };
+  }, []);
 
   // Connect WebSocket
   // useEffect(() => {
@@ -77,10 +57,10 @@ export default function App() {
   }
 
   function handleCellClick(r: number, c: number) {
-    const piece = board[r][c];
+    const piece = gameState?.board[r][c];
     console.log(piece);
     if (!selected) {
-      if (piece && piece.player === me && turn === me) setSelected([r, c]);
+      if (piece && piece.color === me && gameState?.currentTurn === me) setSelected([r, c]);
       return;
     }
     const [sr, sc] = selected;
@@ -92,9 +72,9 @@ export default function App() {
   return (
   <div className="mainContainer">
     <h1>Online Checkers</h1>
-    <div style={{ fontSize: '14px' }}>You are: <b>{me ?? "…"}</b> | Turn: <b>{turn}</b></div>
+    <div style={{ fontSize: '14px' }}>You are: <b>{me ?? "…"}</b> | Turn: <b>{gameState?.currentTurn}</b></div>
     <div className="gameBoard">
-      {board.map((row, r) =>
+      {gameState?.board.map((row, r) =>
         row.map((cell, c) => {
           const dark = (r + c) % 2 === 1;
           const isSel = selected?.[0] === r && selected?.[1] === c;
@@ -108,8 +88,8 @@ export default function App() {
                 }}>
 
             {cell && (
-              <div className="playerChecker" style={{backgroundColor: cell.player === 'WHITE' ? '#fff' : '#000',}} >
-                {cell.king ? 'K' : ''}
+              <div className="playerChecker" style={{backgroundColor: cell.color === 'White' ? '#fff' : '#000',}} >
+                {cell.type == "King" ? 'K' : ''}
               </div>
             )}
           </div>

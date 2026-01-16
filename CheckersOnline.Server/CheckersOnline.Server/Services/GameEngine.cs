@@ -1,11 +1,15 @@
 ﻿using CheckersOnline.Server.Models;
+using System.Collections.Concurrent;
 
 namespace CheckersOnline.Server.Services
 {
     public class GameEngine
     {
         private readonly CheckersRules _rules;
-        public GameState currentGame;
+
+        private readonly ConcurrentDictionary<string, PieceColor> _players = new();
+        public GameState currentGame = new GameState();
+        public List<string> currentGroupPlayers = new List<string>();
 
         public GameEngine(CheckersRules rules)
         {
@@ -19,7 +23,7 @@ namespace CheckersOnline.Server.Services
             {
                 for (int col = 0; col < 8; col++)
                 {
-                    state.Board[row, col] = null;
+                    state.Board[row][col] = null;
                 }
             }
 
@@ -30,7 +34,7 @@ namespace CheckersOnline.Server.Services
                 {
                     if (IsDarkSquare(row, col))
                     {
-                        state.Board[row, col] = new Piece
+                        state.Board[row][col] = new Piece
                         {
                             Color = PieceColor.Black,
                             Type = PieceType.Man
@@ -46,7 +50,7 @@ namespace CheckersOnline.Server.Services
                 {
                     if (IsDarkSquare(row, col))
                     {
-                        state.Board[row, col] = new Piece
+                        state.Board[row][col] = new Piece
                         {
                             Color = PieceColor.White,
                             Type = PieceType.Man
@@ -55,8 +59,17 @@ namespace CheckersOnline.Server.Services
                 }
             }
 
-            // Black moves first
+            SetPlayersAndTurn(state);
+        }
+
+        public ConcurrentDictionary<string, PieceColor> SetPlayersAndTurn(GameState state)
+        {
+            _players[currentGroupPlayers[0]] = PieceColor.Black;
+            _players[currentGroupPlayers[1]] = PieceColor.White;
+
             state.CurrentTurn = PieceColor.Black;
+
+            return _players;
         }
 
         // Check move valid && Apply game logic for move
@@ -102,12 +115,15 @@ namespace CheckersOnline.Server.Services
             return (row + col) % 2 != 0;
         }
 
-        private bool HasPieces(Piece?[,] board, PieceColor color)
+        private bool HasPieces(Piece?[][] board, PieceColor color)
         {
-            foreach (var piece in board)
+            foreach (var row in board)
             {
-                if (piece != null && piece.Color == color)
-                    return true;
+                foreach (var piece in row)
+                {
+                    if (piece != null && piece.Color == color)
+                        return true;
+                }
             }
 
             return false;

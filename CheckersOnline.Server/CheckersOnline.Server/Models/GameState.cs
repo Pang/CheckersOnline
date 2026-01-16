@@ -2,19 +2,15 @@
 {
     public class GameState
     {
-        public Piece?[,] Board { get; set; } = new Piece[8, 8];
+        public Piece?[][] Board { get; set; } = CreateEmptyBoard();
         public PieceColor CurrentTurn { get; set; }
 
-        public bool IsValidMove(Move move)
+        private static Piece?[][] CreateEmptyBoard()
         {
-            // TODO: enforce checkers rules
-            return true;
-        }
-
-        public void ApplyMove(Move move)
-        {
-            Board[move.ToRow, move.ToCol] = Board[move.FromRow, move.FromCol];
-            //Board[move.FromRow, move.FromCol] = 0;
+            var board = new Piece?[8][];
+            for (int i = 0; i < 8; i++)
+                board[i] = new Piece?[8];
+            return board;
         }
     }
 }
