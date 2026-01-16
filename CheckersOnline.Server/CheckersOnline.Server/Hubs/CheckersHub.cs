@@ -7,6 +7,12 @@ public class CheckersHub : Hub
 {
     private static Dictionary<string, GameState> Games = new();
 
+    public override Task OnConnectedAsync()
+    {
+        Console.WriteLine("new client connected.");
+        return base.OnConnectedAsync();
+    }
+
     public async Task CreateGame(string gameId)
     {
         Games[gameId] = new GameState();

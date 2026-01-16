@@ -5,6 +5,7 @@ namespace CheckersOnline.Server.Services
     public class GameEngine
     {
         private readonly CheckersRules _rules;
+        public GameState currentGame;
 
         public GameEngine(CheckersRules rules)
         {

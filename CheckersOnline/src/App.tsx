@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { getConnection, startConnection } from "./services/signalR";
 
 // --- Types ---
 type Player = "WHITE" | "BLACK";
@@ -32,24 +33,44 @@ export default function App() {
   const [selected, setSelected] = useState<[number, number] | null>(null);
   const wsRef = useRef<WebSocket | null>(null);
 
+  // connect signalr
+    useEffect(() => {
+        const conn = getConnection();
+
+        // Register handlers only once
+        conn.on("GameUpdated", (game) => {
+            console.log("Game updated:", game);
+        });
+
+        // Start connection safely
+        startConnection().catch(console.error);
+
+        // Cleanup in production only
+        // return () => {
+        //     if (process.env.NODE_ENV === "production") {
+        //         conn.off("GameUpdated");
+        //     }
+        // };
+    }, []);
+
   // Connect WebSocket
-  useEffect(() => {
-    const ws = new WebSocket("ws://localhost:8080");
-    wsRef.current = ws;
+  // useEffect(() => {
+  //   const ws = new WebSocket("ws://localhost:8080");
+  //   wsRef.current = ws;
 
-    ws.onmessage = (ev) => {
-      console.log(ev);
-      const msg: WSMessage = JSON.parse(ev.data);
-      if (msg.type === "join") setMe(msg.player);
-      if (msg.type === "state") {
-        setBoard(msg.board);
-        setTurn(msg.turn);
-      }
-    };
+  //   ws.onmessage = (ev) => {
+  //     console.log(ev);
+  //     const msg: WSMessage = JSON.parse(ev.data);
+  //     if (msg.type === "join") setMe(msg.player);
+  //     if (msg.type === "state") {
+  //       setBoard(msg.board);
+  //       setTurn(msg.turn);
+  //     }
+  //   };
 
-    ws.onclose = () => console.log("WS closed");
-    return () => ws.close();
-  }, []);
+  //   ws.onclose = () => console.log("WS closed");
+  //   return () => ws.close();
+  // }, []);
 
   function sendMove(from: [number, number], to: [number, number]) {
     wsRef.current?.send(JSON.stringify({ type: "move", from, to }));

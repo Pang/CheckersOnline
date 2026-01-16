@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("CheckersOnline.Server")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+cf050972c47ac8a6db8de92051a8c659bc6d4c72")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+ba677f399ea004de2ab3304b3ee3d90368bf9e11")]
 [assembly: System.Reflection.AssemblyProductAttribute("CheckersOnline.Server")]
 [assembly: System.Reflection.AssemblyTitleAttribute("CheckersOnline.Server")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
